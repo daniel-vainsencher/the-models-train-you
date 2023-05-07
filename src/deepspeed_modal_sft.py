@@ -20,14 +20,15 @@ dschat_image = (
 
 stub = modal.Stub("gpu_check", image=dschat_image)
 
-@stub.function(gpu="A100")
+@stub.function(gpu="A100", timeout=1800)
 def tell_me_stuff():
     cmds = ["nvidia-smi -L",
             "uname -a",
             "pip list",
-            "cd /DeepSpeedExamples/applications/DeepSpeed-Chat/training/step1_supervised_finetuning/ && /usr/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMF19 --master_addr=127.0.0.1 --master_port=29500 --enable_each_rank_log=None main.py --model_name_or_path facebook/opt-1.3b --gradient_accumulation_steps 8 --lora_dim 128 --gradient_checkpoint --zero_stage 0 --deepspeed --output_dir /DeepSpeedExamples/applications/DeepSpeed-Chat/output/actor-models/1.3b"
+            "cd /DeepSpeedExamples/applications/DeepSpeed-Chat/training/step1_supervised_finetuning/ && /usr/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMF19 --master_addr=127.0.0.1 --master_port=29500 --enable_each_rank_log=None main.py --model_name_or_path facebook/opt-1.3b --gradient_accumulation_steps 8 --lora_dim 128 --gradient_checkpoint --zero_stage 0 --deepspeed --output_dir /DeepSpeedExamples/applications/DeepSpeed-Chat/output/actor-models/1.3b",
             ]
-    return [subprocess.check_output(cmd, shell=True).decode('utf-8').strip() for cmd in cmds]
+    for cmd in cmds:
+        print(subprocess.check_output(cmd, shell=True).decode('utf-8').strip())
 
 # "python train.py --actor-model facebook/opt-1.3b --reward-model facebook/opt-350m --deployment-type single_node"
 
