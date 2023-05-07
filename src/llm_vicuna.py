@@ -33,7 +33,7 @@ def download_model():
 
 stub.vicuna_image = (
     Image.from_dockerhub(
-        "nvidia/cuda:11.7.0-devel-ubuntu20.04",
+        "nvidia/cuda:11.7.1-devel-ubuntu22.04", # Version tied to that used to build pytorch in deps.
         setup_dockerfile_commands=[
             "RUN apt-get update",
             "RUN apt-get install -y python3 python3-pip python-is-python3",
