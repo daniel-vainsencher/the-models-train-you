@@ -9,14 +9,9 @@ from deepspeed_modal_shared import stub, base_path, dschat_image, initial_dse_co
                secret=modal.Secret.from_name("huggingface-secret"))
 def do_sft(num_train_epochs, max_total_steps, model_name, target_model_name):
     hf_token = os.environ["HUGGINGFACE_TOKEN"]
-    cmds = [
-            "date",
-            "git config --global credential.helper store",
-            f"huggingface-cli login --token {hf_token} --add-to-git-credential",
-            f"cd {base_path} && git pull",
-            "date",
+    cmds = initial_dse_commands(hf_token) + [
             f"""export TOKENIZERS_PARALLELISM=false && \
-            cd {base_path}/step1_supervised_finetuning/ && \
+            cd {base_path}/training/step1_supervised_finetuning/ && \
             /usr/bin/python -u -m deepspeed.launcher.launch --world_info=eyJsb2NhbGhvc3QiOiBbMF19 \
             --master_addr=127.0.0.1 --master_port=29500 --enable_each_rank_log=None \
             main.py --model_name_or_path {model_name} --target_model_name {target_model_name} \
@@ -41,18 +36,24 @@ parameter_presets = {
         "target_model_name": "danielv835/PF_Coach_sft_lightest",
         "model_name": "facebook/opt-350m",
         "max_total_steps": 5,
+        },
+    "normal": {
+        
         }
     }
 
-parameter_defaults = {
+parameter_normal = {
     "num_train_epochs": 2,
     "target_model_name": "danielv835/PF_Coach_sft_1.3b",
     "model_name": "facebook/opt-1.3b",
-    "max_total_steps": 1000,
+    "max_total_steps": 2000,
 }
 
 @stub.local_entrypoint()
 def cli(preset: str = "lightest"):
-    parameters = parameter_defaults | parameter_presets[preset]
+    parameters = parameter_normal | parameter_presets[preset]
     print(f"Apply preset: {preset}, resulting in parameters: {parameters}")
     do_sft.call(**parameters)
+
+
+
