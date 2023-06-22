@@ -2,25 +2,7 @@ import modal
 import subprocess
 import os
 
-dschat_image = (
-    modal.Image.from_dockerhub(
-        "nvidia/cuda:11.7.0-devel-ubuntu20.04",
-        setup_dockerfile_commands=[
-            "RUN apt-get update",
-            "RUN apt-get install -y python3 python3-pip python-is-python3 nano hexyl unzip git gcc build-essential git-lfs",
-        ],
-    )
-    # Create and enter venv in image prep to messing with the gloal env which pip complains about.
-    .pip_install("deepspeed[fused_adam]>=0.9.2", "tensorboard")
-    .run_commands(
-        "git clone https://github.com/daniel-vainsencher/DeepSpeedExamples.git -b pf_coach",
-        "cd DeepSpeedExamples/applications/DeepSpeed-Chat/ && pip install -r requirements.txt",
-        "git lfs install",
-        )
-)
-
-stub = modal.Stub("DeepSpeedExamples", image=dschat_image)
-base_path = "/DeepSpeedExamples/applications/DeepSpeed-Chat/training"
+from deepspeed_modal_shared import stub, base_path, dschat_image, initial_dse_commands
 
 @stub.function(gpu="A100",
                timeout=86400,
@@ -74,6 +56,3 @@ def cli(preset: str = "lightest"):
     parameters = parameter_defaults | parameter_presets[preset]
     print(f"Apply preset: {preset}, resulting in parameters: {parameters}")
     do_sft.call(**parameters)
-
-
-
